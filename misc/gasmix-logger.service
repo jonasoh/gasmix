@@ -1,0 +1,13 @@
+[Unit]
+Description=Gas mixer logger/controller
+After=network.target
+
+[Service]
+User=j
+Group=j
+WorkingDirectory=/home/j/gasmix/
+ExecStart=/usr/bin/python main.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

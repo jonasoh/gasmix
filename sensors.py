@@ -69,4 +69,3 @@ class BlueVary(ModbusTcpClient):
 
 #bluevary = BlueVary('192.168.10.250')
 #bluevary.connect()
-

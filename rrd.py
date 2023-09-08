@@ -4,6 +4,28 @@ import rrdtool
 RRD_FILE = os.path.expanduser('~/rrd.db')
 GRAPH_FILE = '/www/rrd.png' # make sure web server directory is writeable
 
+# helper functions for generating the rrdtool command
+def plot_flow(num, color): 
+    return f"DEF:flow_{num}={RRD_FILE}:flow_{num}:AVERAGE", \
+            f"LINE:flow_{num}#{color}:Reactor {num} flow", \
+            f"GPRINT:flow_{num}:MIN:Min\\: %3.1lf", \
+            f"GPRINT:flow_{num}:MAX:Max\\: %3.1lf", \
+            f"GPRINT:flow_{num}:AVERAGE:Avg.\\: %3.1lf\\n"
+
+def plot_h2(num, color):
+    return f"DEF:h2_{num}={RRD_FILE}:h2_{num}:AVERAGE", \
+            f"LINE:h2_{num}#{color}:Reactor {num} H2  ", \
+            f"GPRINT:h2_{num}:MIN:Min\\: %2.1lf", \
+            f"GPRINT:h2_{num}:MAX:Max\\: %2.1lf", \
+            f"GPRINT:h2_{num}:AVERAGE:Avg.\\: %2.1lf\\n"
+
+def plot_co2(num, color):
+    return f"DEF:co2_{num}={RRD_FILE}:co2_{num}:AVERAGE", \
+            f"LINE:co2_{num}#{color}:Reactor {num} CO2 ", \
+            f"GPRINT:co2_{num}:MIN:Min\\: %2.1lf", \
+            f"GPRINT:co2_{num}:MAX:Max\\: %2.1lf", \
+            f"GPRINT:co2_{num}:AVERAGE:Avg.\\: %2.1lf\\n"
+
 def exists():
     return os.path.exists(RRD_FILE)
 
@@ -43,27 +65,6 @@ def send_to_rrd(flows, h2, co2):
                    upd_string)
 
 def update_rrd_graph():
-    def plot_flow(num, color): 
-        return f"DEF:flow_{num}={RRD_FILE}:flow_{num}:AVERAGE", \
-               f"LINE:flow_{num}#{color}:Reactor {num} flow", \
-               f"GPRINT:flow_{num}:MIN:Min\\: %3.1lf", \
-               f"GPRINT:flow_{num}:MAX:Max\\: %3.1lf", \
-               f"GPRINT:flow_{num}:AVERAGE:Avg.\\: %3.1lf\\n"
-
-    def plot_h2(num, color):
-        return f"DEF:h2_{num}={RRD_FILE}:h2_{num}:AVERAGE", \
-               f"LINE:h2_{num}#{color}:Reactor {num} H2  ", \
-               f"GPRINT:h2_{num}:MIN:Min\\: %2.1lf", \
-               f"GPRINT:h2_{num}:MAX:Max\\: %2.1lf", \
-               f"GPRINT:h2_{num}:AVERAGE:Avg.\\: %2.1lf\\n"
-
-    def plot_co2(num, color):
-        return f"DEF:co2_{num}={RRD_FILE}:co2_{num}:AVERAGE", \
-               f"LINE:co2_{num}#{color}:Reactor {num} CO2 ", \
-               f"GPRINT:co2_{num}:MIN:Min\\: %2.1lf", \
-               f"GPRINT:co2_{num}:MAX:Max\\: %2.1lf", \
-               f"GPRINT:co2_{num}:AVERAGE:Avg.\\: %2.1lf\\n"
-
     a = [GRAPH_FILE,
          *plot_flow(1, 'FF8439'),
          *plot_flow(2, '00BA27'),
@@ -78,8 +79,27 @@ def update_rrd_graph():
          "-l 0",
          "-w 600",
          "-h 400",
-         '--start', 'N-7d',
+         '--start', 'N-7d', # default duration
          '--end', 'N',
          "-v Flow [ml/min] / H2 [%]"]
     rrdtool.graph(a)
 
+
+def custom_rrd_graph(duration):
+    a = [*plot_flow(1, 'FF8439'),
+         *plot_flow(2, '00BA27'),
+         *plot_flow(3, '3C65FF'),
+         *plot_h2(1, 'CE2500'),
+         *plot_h2(2, '00BA4B'),
+         *plot_h2(3, '6409FF'),
+         *plot_co2(1, 'C02500'),
+         *plot_co2(2, '0EBA4B'),
+         *plot_co2(3, '6A09FF'),
+         "-u 100",
+         "-l 0",
+         "-w 600",
+         "-h 400",
+         '--start', 'N-' + str(duration) + 'h',
+         '--end', 'N',
+         "-v Flow [ml/min] / H2 [%]"]
+    return rrdtool.graphv('-', a)

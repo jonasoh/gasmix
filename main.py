@@ -110,7 +110,7 @@ while True:
 
     if r == 2:
         rrd.send_to_rrd(flows, h2, co2)
-        rrd.update_rrd_graph()
+        #rrd.update_rrd_graph()
         h2 = ['U', 'U', 'U']
         co2 = ['U', 'U', 'U']
         flows = ['U', 'U', 'U']

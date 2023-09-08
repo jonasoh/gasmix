@@ -1,15 +1,43 @@
+from textwrap import dedent
 from datetime import datetime
 
-import pytz
 import falcon
+import rrdtool
 import pandas as pd
 
 import db
+import rrd
 
 # define the local time zone
-LOCAL_TZ = pytz.timezone('Europe/Stockholm')
+LOCAL_TZ = 'Europe/Stockholm'
+
+# this is the index web page
+INDEX_PAGE = dedent('''
+    <meta http-equiv="refresh" content="60">
+
+    <body>
+        <p><img src="{img}" /></p>
+        <p><a href="/?hours=8">8 h</a> <a href="/?hours=24">24 h</a> <a href="/?hours=48">48 h</a> <a href="/?hours=72">72 h</a> <a href="/?hours=168">1 w</a> 
+        <p><a href="extract">Export data to CSV</a></p>
+    </body>
+''')
 
 db.init()
+
+class IndexPageResource:
+    def on_get(self, req, resp):
+        hours = req.get_param('hours', default=None)  # Get the optional parameter value
+
+        if hours is None:
+            # If the parameter is supplied, print its value
+            page_content = INDEX_PAGE.format(img="/extract/rrdgraph?hours=72")
+        else:
+            # If the parameter is not supplied, display a default message
+            page_content = INDEX_PAGE.format(img='/extract/rrdgraph?hours=' + hours)
+
+        resp.content_type = 'text/html'
+        resp.text = page_content
+        resp.status = falcon.HTTP_200
 
 
 class DataResource:
@@ -58,10 +86,35 @@ class ExtractDataResource:
         resp.status = falcon.HTTP_200
 
 
+class RRDGraphResource:
+    def on_get(self, req, resp):
+        # get the number of hours from the query parameter
+        hours = req.get_param_as_int('hours')
+
+        if hours is None or hours <= 0:
+            resp.status = falcon.HTTP_400  # Bad Request
+            resp.text = "Invalid input. Please provide a positive 'hours' parameter."
+            return
+
+        try:
+            # Generate the graph and capture it as a binary image
+            graph_binary = rrd.custom_rrd_graph(hours)
+        except rrdtool.OperationalError as e:
+            resp.status = falcon.HTTP_500  # Internal Server Error
+            resp.text = f"Error generating RRDtool graph: {str(e)}"
+            return
+
+        # Set the response content type to display the image
+        resp.content_type = 'image/png'
+        resp.data = graph_binary['image']
+
+
 # create a falcon api instance
 app = falcon.App()
+app.add_route('/', IndexPageResource())
 app.add_route('/extract', DataResource()) # url for the web page
 app.add_route('/extract/extract_csv', ExtractDataResource()) # url for the cgi endpoint
+app.add_route('/extract/rrdgraph', RRDGraphResource())
 
 if __name__ == '__main__':
     import wsgiref.simple_server

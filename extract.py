@@ -1,3 +1,6 @@
+# extract.py --
+#   falcon web app for presenting and exporting data from the gas mixer/logger
+
 from textwrap import dedent
 from datetime import datetime
 
@@ -12,7 +15,7 @@ import rrd
 LOCAL_TZ = 'Europe/Stockholm'
 
 # this is the index web page
-INDEX_PAGE = dedent('''
+INDEX_PAGE = dedent('''\
     <meta http-equiv="refresh" content="60">
 
     <body>
@@ -114,8 +117,9 @@ app = falcon.App()
 app.add_route('/', IndexPageResource())
 app.add_route('/extract', DataResource()) # url for the web page
 app.add_route('/extract/extract_tsv', ExtractDataResource()) # url for the cgi endpoint
-app.add_route('/extract/rrdgraph', RRDGraphResource())
+app.add_route('/extract/rrdgraph', RRDGraphResource()) # url for the dynamically generated graph
 
+# allow running from command line
 if __name__ == '__main__':
     import wsgiref.simple_server
     httpd = wsgiref.simple_server.make_server('', 8000, app)

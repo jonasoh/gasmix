@@ -1,11 +1,8 @@
-import os
-import csv
-from io import StringIO
 from datetime import datetime
 
 import pytz
 import falcon
-import pugsql
+import pandas as pd
 
 import db
 
@@ -45,22 +42,19 @@ class ExtractDataResource:
 
         # Retrieve data from the database based on the date range
         data = db.queries.extract_data(start_timestamp=start_timestamp, end_timestamp=end_timestamp)
+        df = pd.DataFrame(data)
 
-        # Create a CSV response
-        output = StringIO()
-        csv_writer = csv.writer(output)
-        csv_writer.writerow(['read_time', 'reactor', 'vol', 'h2', 'co2', 'temp', 'pressure', 'humidity', 'comment'])
+        # replace "U" with empty string in the DataFrame
+        df = df.replace('U', '')
 
-        # iterate over each row in the data, format "read_time," replace "U" with "", and write it to the csv
-        for row in data:
-            # Convert Unix timestamp to local time
-            local_time = datetime.utcfromtimestamp(row['read_time']).replace(tzinfo=pytz.utc).astimezone(LOCAL_TZ)
-            row['read_time'] = local_time.strftime('%Y-%m-%d %H:%M:%S')
-            cleaned_row = [str(value).replace("U", "") if value == "U" else value for value in row.values()]
-            csv_writer.writerow(cleaned_row)
+        # convert the 'read_time' column to datetime and localize it to the desired timezone
+        df['read_time'] = pd.to_datetime(df['read_time'], unit='s').dt.tz_localize(LOCAL_TZ)
+
+        # format the 'read_time' column to human-readable format
+        df['read_time'] = df['read_time'].dt.strftime('%Y-%m-%d %H:%M:%S')
 
         resp.content_type = 'text/csv'
-        resp.body = output.getvalue()
+        resp.body = df.to_csv(index=False)
         resp.status = falcon.HTTP_200
 
 

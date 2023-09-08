@@ -58,11 +58,11 @@ def update_rrd_graph():
                f"GPRINT:h2_{num}:AVERAGE:Avg.\\: %2.1lf\\n"
 
     def plot_co2(num, color):
-        return f"DEF:h2_{num}={RRD_FILE}:co2_{num}:AVERAGE", \
-               f"LINE:h2_{num}#{color}:Reactor {num} CO2 ", \
-               f"GPRINT:h2_{num}:MIN:Min\\: %2.1lf", \
-               f"GPRINT:h2_{num}:MAX:Max\\: %2.1lf", \
-               f"GPRINT:h2_{num}:AVERAGE:Avg.\\: %2.1lf\\n"
+        return f"DEF:co2_{num}={RRD_FILE}:co2_{num}:AVERAGE", \
+               f"LINE:co2_{num}#{color}:Reactor {num} CO2 ", \
+               f"GPRINT:co2_{num}:MIN:Min\\: %2.1lf", \
+               f"GPRINT:co2_{num}:MAX:Max\\: %2.1lf", \
+               f"GPRINT:co2_{num}:AVERAGE:Avg.\\: %2.1lf\\n"
 
     a = [GRAPH_FILE,
          *plot_flow(1, 'FF8439'),

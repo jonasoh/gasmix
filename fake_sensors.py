@@ -42,6 +42,7 @@ class FakeBlueVCount:
 
 class FakeBlueVary:
     h2 = 70
+    humidity = 1.0
 
     def __init__(self, h2=70):
         self.h2 = h2
@@ -51,4 +52,6 @@ class FakeBlueVary:
 
     def get_co2(self):
         return random.gauss(100 - self.h2, 3)
-        
+
+    def get_humidity(self):
+        return random.gauss(self.humidity, 0.1)

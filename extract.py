@@ -18,7 +18,7 @@ INDEX_PAGE = dedent('''
     <body>
         <p><img src="{img}" /></p>
         <p><a href="/?hours=8">8 h</a> <a href="/?hours=24">24 h</a> <a href="/?hours=48">48 h</a> <a href="/?hours=72">72 h</a> <a href="/?hours=168">1 w</a> 
-        <p><a href="extract">Export data to CSV</a></p>
+        <p><a href="extract">Export data to TSV</a></p>
     </body>
 ''')
 
@@ -49,7 +49,7 @@ class DataResource:
         <head><title>Sensor Data Extraction</title></head>
         <body>
             <h1>Sensor Data Extraction</h1>
-            <form action="/extract/extract_csv" method="get">
+            <form action="/extract/extract_tsv" method="get">
                 Start Date: <input type="datetime-local" name="start_date"><br>
                 End Date: <input type="datetime-local" name="end_date"><br>
                 <input type="submit" value="Extract Data">
@@ -81,8 +81,8 @@ class ExtractDataResource:
         # format the 'read_time' column to human-readable format
         df['read_time'] = df['read_time'].dt.strftime('%Y-%m-%d %H:%M:%S')
 
-        resp.content_type = 'text/csv'
-        resp.body = df.to_csv(index=False)
+        resp.content_type = 'text/tab-separated-values'
+        resp.body = df.to_csv(index=False, sep='\t')
         resp.status = falcon.HTTP_200
 
 
@@ -113,7 +113,7 @@ class RRDGraphResource:
 app = falcon.App()
 app.add_route('/', IndexPageResource())
 app.add_route('/extract', DataResource()) # url for the web page
-app.add_route('/extract/extract_csv', ExtractDataResource()) # url for the cgi endpoint
+app.add_route('/extract/extract_tsv', ExtractDataResource()) # url for the cgi endpoint
 app.add_route('/extract/rrdgraph', RRDGraphResource())
 
 if __name__ == '__main__':

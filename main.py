@@ -14,7 +14,7 @@ TIMEOUT = 15 # no gas during this time constitues a timeout
 
 def nice_mean(vals):
     '''Like statistics.mean except it automatically filters out missing values.'''
-    return mean([x for x in vals if isinstance(x, (int, float)) and not math.isnan(x)])
+    return mean([x for x in vals if isinstance(x, (int, float)) and not math.isnan(x) and x != 'U'])
 
 print('Gas logger and controller starting up.')
 
@@ -72,8 +72,8 @@ while True:
 
     if lasttime > starttime: # there was at least one volume tick
         flows[r] = (bc.get_vol() - startvol)/(elapsed/60)
-        h2[r] = nice_mean([raw_h2])
-        co2[r] = nice_mean([raw_co2])
+        h2[r] = nice_mean(raw_h2)
+        co2[r] = nice_mean(raw_co2)
         comment = ''
     else:
         flows[r] = 0
@@ -110,7 +110,6 @@ while True:
 
     if r == 2:
         rrd.send_to_rrd(flows, h2, co2)
-        #rrd.update_rrd_graph()
         h2 = ['U', 'U', 'U']
         co2 = ['U', 'U', 'U']
         flows = ['U', 'U', 'U']

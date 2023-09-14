@@ -17,10 +17,10 @@ def activate_rocker(num):
         return
     
     # separate list into rockers to be closed and opened
-    r_list = rockers.copy()
-    rocker = r_list.pop(num) 
+    inactive_rockers = rockers.copy()
+    rocker = inactive_rockers.pop(num) 
 
-    GPIO.output(r_list, 0)
+    GPIO.output(inactive_rockers, 0)
     GPIO.output(rocker, 1)
 
 

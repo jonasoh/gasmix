@@ -2,7 +2,6 @@ import os
 import rrdtool
 
 RRD_FILE = os.path.expanduser('~/rrd.db')
-GRAPH_FILE = '/www/rrd.png' # make sure web server directory is writeable
 
 # helper functions for generating the rrdtool command
 def plot_flow(num, color): 
@@ -60,32 +59,12 @@ def send_to_rrd(flows, h2, co2):
                  str(flows[0]) +':'+ str(flows[1]) +':'+ str(flows[2]) +':'+ \
                  str(h2[0]) +':'+ str(h2[1]) +':'+ str(h2[2]) +':'+ \
                  str(co2[0]) +':'+ str(co2[1]) +':'+ str(co2[2])
-    print(upd_string)
     rrdtool.update(RRD_FILE, 
                    upd_string)
 
-def update_rrd_graph():
-    a = [GRAPH_FILE,
-         *plot_flow(1, 'FF8439'),
-         *plot_flow(2, '00BA27'),
-         *plot_flow(3, '3C65FF'),
-         *plot_h2(1, 'CE2500'),
-         *plot_h2(2, '00BA4B'),
-         *plot_h2(3, '6409FF'),
-         *plot_co2(1, 'C02500'),
-         *plot_co2(2, '0EBA4B'),
-         *plot_co2(3, '6A09FF'),
-         "-u 100",
-         "-l 0",
-         "-w 600",
-         "-h 400",
-         '--start', 'N-7d', # default duration
-         '--end', 'N',
-         "-v Flow [ml/min] / H2 [%]"]
-    rrdtool.graph(a)
-
-
 def custom_rrd_graph(duration):
+    '''Plots an RRD graph spanning the specified duration (in hours).
+    Returns a PNG graph as bytes.'''
     a = [*plot_flow(1, 'FF8439'),
          *plot_flow(2, '00BA27'),
          *plot_flow(3, '3C65FF'),

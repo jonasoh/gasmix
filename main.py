@@ -1,3 +1,4 @@
+import sys
 import time
 import math
 from statistics import mean
@@ -15,8 +16,6 @@ TIMEOUT = 15 # no gas during this time constitues a timeout
 def nice_mean(vals):
     '''Like statistics.mean except it automatically filters out missing values.'''
     return mean([x for x in vals if isinstance(x, (int, float)) and not math.isnan(x) and x != 'U'])
-
-print('Gas logger and controller starting up.')
 
 # set up the rrd
 if not rrd.exists():
@@ -43,12 +42,12 @@ co2 = ['U', 'U', 'U']
 flows = ['U', 'U', 'U']
 
 try:
+    print('Gas logger and controller starting up.')
     while True:
         r = reactors[0] # current reactor
         reactors.rotate(-1)
         activate_rocker(r)
         time.sleep(EQ_TIME)
-        print('Measuring reactor', r)
 
         # wait for the flowmeter to click over to get more precise readings
         start = time.monotonic()
@@ -78,7 +77,7 @@ try:
             comment = ''
         else:
             flows[r] = 0
-            h2[r] = bv.get_h2() # XXX: these should be 'U' 
+            h2[r] = bv.get_h2()
             co2[r] = bv.get_co2()
             comment = 'No volume'
 

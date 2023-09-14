@@ -2,7 +2,7 @@ import time
 import RPi.GPIO as GPIO
 
 # gpio pins of rockers - these correspond to reactors 1-3
-rockers = [17, 18, 26]
+rockers = [17, 18, 27]
 
 # initialize gpio
 GPIO.setmode(GPIO.BCM)

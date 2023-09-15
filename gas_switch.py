@@ -7,9 +7,7 @@ rockers = [17, 18, 27]
 
 # initialize gpio
 GPIO.setmode(GPIO.BCM)
-for i in rockers:
-    GPIO.setup(i, GPIO.OUT)
-    GPIO.output(i, GPIO.LOW)
+GPIO.setup(rockers, GPIO.OUT, initial=GPIO.LOW)
 
 def activate_rocker(num):
     '''Activates the indicated rocker and deactivates the others.'''
@@ -17,13 +15,13 @@ def activate_rocker(num):
         print('Invalid rocker number', num, file=sys.stderr)
         return
 
-    # separate list into rockers to be closed and opened
-    inactive_rockers = rockers.copy()
-    rocker = inactive_rockers.pop(num) 
-
-    GPIO.output(inactive_rockers, GPIO.LOW)
+    output = [GPIO.LOW] * 3
+    output[num] = GPIO.HIGH
+    GPIO.output(rockers, GPIO.LOW)
     time.sleep(0.5)
-    GPIO.output(rocker, GPIO.HIGH)
+    GPIO.output(rockers, output)
+
 
 def cleanup():
+    GPIO.output(rockers, GPIO.LOW)
     GPIO.cleanup()

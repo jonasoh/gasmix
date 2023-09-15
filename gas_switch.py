@@ -1,4 +1,5 @@
 import sys
+import time
 import RPi.GPIO as GPIO
 
 # gpio pins of rockers - these correspond to reactors 1-3
@@ -20,8 +21,9 @@ def activate_rocker(num):
     inactive_rockers = rockers.copy()
     rocker = inactive_rockers.pop(num) 
 
-    GPIO.output(inactive_rockers, 0)
-    GPIO.output(rocker, 1)
+    GPIO.output(inactive_rockers, GPIO.LOW)
+    time.sleep(0.5)
+    GPIO.output(rocker, GPIO.HIGH)
 
 def cleanup():
     GPIO.cleanup()

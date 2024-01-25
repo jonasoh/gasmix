@@ -1,4 +1,5 @@
 import time
+import argparse
 from statistics import mean
 from collections import deque
 
@@ -9,7 +10,11 @@ import rrd
 from gas_switch import activate_rocker, cleanup
 from sensors import BlueVary, BlueVCount
 
-VERBOSE = True
+parser = argparse.ArgumentParser()
+parser.add_argument('--verbose', action='store_true', help='Enable verbose mode')
+args = parser.parse_args()
+
+VERBOSE = args.verbose
 
 def get_vols(counters):
     return [counter.get_vol() for counter in counters]

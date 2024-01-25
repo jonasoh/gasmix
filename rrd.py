@@ -13,9 +13,9 @@ def missing_files():
 def plot_flow(num, color): 
     return f"DEF:flow={RRD_FILES[num]}:flow:AVERAGE", \
             f"LINE2:flow#{color}:Flow (ml/min)\\n", \
-            f"GPRINT:flow:MIN:Flow\\: Min\\: %3.1lf", \
-            f"GPRINT:flow:MAX:Max\\: %3.1lf", \
-            f"GPRINT:flow:AVERAGE:Avg.\\: %3.1lf ml/min"
+            f"GPRINT:flow:MIN:Min\\: %2.1lf ml/min", \
+            f"GPRINT:flow:MAX:Max\\: %2.1lf ml/min", \
+            f"GPRINT:flow:AVERAGE:Avg.\\: %2.1lf ml/min\\n"
 
 def plot_h2(num, color):
     return f"DEF:h2={RRD_FILES[num]}:h2:AVERAGE", \

@@ -14,32 +14,47 @@ import rrd
 # define the local time zone
 LOCAL_TZ = 'Europe/Stockholm'
 
-# this is the index web page
+# web page for showing graphs
 INDEX_PAGE = dedent('''\
     <meta http-equiv="refresh" content="60">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css" integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/grids-responsive-min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <body>
-        <p>
-            <img src="{img}&reactor=0&width=280&hours=4" />
-            <img src="{img}&reactor=1&width=280&hours=4" />
-            <img src="{img}&reactor=2&width=280&hours=4" />
-        </p>
-        <p><a href="/?hours=8">8 h</a> <a href="/?hours=24">24 h</a> <a href="/?hours=48">48 h</a> <a href="/?hours=72">72 h</a> <a href="/?hours=168">1 w</a> 
-        <p><a href="extract">Export data to TSV</a></p>
+        <div class="pure-g">
+            <div class="pure-u-1">
+                <div style="display: flex;">
+                    <img src="{img}&reactor=0&width=320" class="pure-img" style="width: 33.33%;" />
+                    <img src="{img}&reactor=1&width=320" class="pure-img" style="width: 33.33%;" />
+                    <img src="{img}&reactor=2&width=320" class="pure-img" style="width: 33.33%;" />
+                </div>
+            </div>
+            <div class="pure-u-1" style="display: flex; justify-content: center; align-items: center;">
+                <p>
+                    <a href="/?hours=4" class="pure-button">4 h</a>
+                    <a href="/?hours=8" class="pure-button">8 h</a>
+                    <a href="/?hours=24" class="pure-button">24 h</a>
+                    <a href="/?hours=48" class="pure-button">48 h</a>
+                    <a href="/?hours=72" class="pure-button">72 h</a>
+                    <a href="/?hours=168" class="pure-button">1 w</a>
+                    <a href="extract" class="pure-button">Export data to TSV</a>
+                </p>
+            </div>
+        </div>
     </body>''')
 
 db.init()
 
 class IndexPageResource:
     def on_get(self, req, resp):
-        hours = req.get_param('hours', default=None)  # Get the optional parameter value
+        hours = req.get_param_as_int('hours', default=None)  # Get the optional parameter value
 
-        if hours is None:
-            # If the parameter is supplied, print its value
-            page_content = INDEX_PAGE.format(img="/extract/rrdgraph?hours=72")
+        if hours is None or hours < 0:
+            page_content = INDEX_PAGE.format(img="/extract/rrdgraph?hours=4")
         else:
             # If the parameter is not supplied, display a default message
-            page_content = INDEX_PAGE.format(img='/extract/rrdgraph?hours=' + hours)
+            page_content = INDEX_PAGE.format(img='/extract/rrdgraph?hours=' + str(hours))
 
         resp.content_type = 'text/html'
         resp.text = page_content
@@ -50,19 +65,58 @@ class DataResource:
     def on_get(self, req, resp):
         resp.status = falcon.HTTP_200
         resp.content_type = 'text/html'
-        resp.text = """
-        <html>
-        <head><title>Sensor Data Extraction</title></head>
+        resp.text = dedent("""
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css" integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/grids-responsive-min.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Sensor Data Extraction</title>
         <body>
-            <h1>Sensor Data Extraction</h1>
-            <form action="/extract/extract_tsv" method="get">
-                Start Date: <input type="datetime-local" name="start_date"><br>
-                End Date: <input type="datetime-local" name="end_date"><br>
-                <input type="submit" value="Extract Data">
+            <div class="pure-g">
+            <div class="pure-u-1-5"></div>
+            <div class="pure-u-3-5">
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Function to format the date in 'YYYY-MM-DDTHH:mm' format
+                    function formatDate(date) {
+                    const pad = (n) => n.toString().padStart(2, '0');
+                    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+                    }
+
+                    // Get the current date
+                    const currentDate = new Date();
+
+                    // Prefill end_date with the current date
+                    document.getElementById('end_date').value = formatDate(currentDate);
+
+                    // Calculate date minus 24 hours
+                    const startDate = new Date(currentDate);
+                    startDate.setHours(currentDate.getHours() - 24);
+
+                    // Prefill end_date with the current date minus 24 hours
+                    document.getElementById('start_date').value = formatDate(startDate);
+                });
+            </script>
+
+            <form action="/extract/extract_tsv" method="get" class="pure-form pure-form-aligned" style="margin-top: 40px;">
+                <fieldset>
+                    <legend>Sensor data extraction</legend>
+                    <div class="pure-control-group">
+                        <label for="start_date">Start Date</label><input type="datetime-local" name="start_date" id="start_date">
+                    </div>
+                    <div class="pure-control-group">
+                        <label for="end_date">End Date</label><input type="datetime-local" name="end_date" id="end_date">
+                    </div>
+                    <div class="pure-controls">
+                        <button type="submit" class="pure-button pure-button-primary">Extract data</button>
+                    </div>
+                </fieldset>
             </form>
+            </div>
+            <div class="pure-u-1-5"></div>
+            </div>
         </body>
         </html>
-        """
+        """)
 
 
 class ExtractDataResource:

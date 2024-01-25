@@ -5,7 +5,7 @@ import os
 
 DB_FILE = os.path.expanduser('~/gasferm.db')
 
-DB_VER = 1
+DB_VER = 2
 
 queries = None
 
@@ -18,6 +18,5 @@ def init():
 def rebuild_db():
     print('Creating new database.', file=sys.stderr)
     queries.create_table_sensordata()
-    queries.create_table_experiments()
     queries.create_table_meta()
     queries.update_db_version(created=int(time.time()), dbver=DB_VER)

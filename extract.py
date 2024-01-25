@@ -19,13 +19,14 @@ INDEX_PAGE = dedent('''\
     <meta http-equiv="refresh" content="60">
 
     <body>
-        <p><img src="{img}&reactor=0" /></p>
-        <p><img src="{img}&reactor=1" /></p>
-        <p><img src="{img}&reactor=2" /></p>
+        <p>
+            <img src="{img}&reactor=0&width=280&hours=4" />
+            <img src="{img}&reactor=1&width=280&hours=4" />
+            <img src="{img}&reactor=2&width=280&hours=4" />
+        </p>
         <p><a href="/?hours=8">8 h</a> <a href="/?hours=24">24 h</a> <a href="/?hours=48">48 h</a> <a href="/?hours=72">72 h</a> <a href="/?hours=168">1 w</a> 
         <p><a href="extract">Export data to TSV</a></p>
-    </body>
-''')
+    </body>''')
 
 db.init()
 
@@ -93,18 +94,12 @@ class ExtractDataResource:
 
 class RRDGraphResource:
     def on_get(self, req, resp):
-        # get the number of hours from the query parameter
-        hours = req.get_param_as_int('hours')
-        reactor = req.get_param_as_int('reactor')
-
-        if hours is None or hours <= 0:
-            resp.status = falcon.HTTP_400  # Bad Request
-            resp.text = "Invalid input. Please provide a positive 'hours' parameter."
-            return
-
         try:
             # Generate the graph and capture it as a binary image
-            graph_binary = rrd.custom_rrd_graph(reactor, hours)
+            graph_binary = rrd.custom_rrd_graph(reactor=req.get_param_as_int('reactor'), 
+                                                duration=req.get_param_as_int('hours') if req.get_param_as_int('hours') is not None and req.get_param_as_int('hours') > 0 else 8,
+                                                width=req.get_param_as_int('width') if req.get_param_as_int('width') else 600,
+                                                height=req.get_param_as_int('height') if req.get_param_as_int('height') else 400)
         except rrdtool.OperationalError as e:
             resp.status = falcon.HTTP_500  # Internal Server Error
             resp.text = f"Error generating RRDtool graph: {str(e)}"

@@ -54,7 +54,7 @@ try:
                 time.sleep(0.01)
             end_vols = get_vols(bcs)
 
-            rrd.record_data(flows=(flows := [x - y for x, y in zip(end_vols, init_vols)]), reactor=r, h2=(h2 := bv.get_h2()), co2=(co2 := bv.get_co2()))
+            rrd.record_data(flows=(flows := [(x - y) / ((time.monotonic() - loopstart) / 60) for x, y in zip(end_vols, init_vols)]), reactor=r, h2=(h2 := bv.get_h2()), co2=(co2 := bv.get_co2()))
             if (VERBOSE):
                 print(f"{flows=} {h2=} {co2=}")
 

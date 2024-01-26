@@ -27,9 +27,9 @@ INDEX_PAGE = dedent('''\
         <div class="pure-g">
             <div class="pure-u-1">
                 <div style="display: flex;">
-                    <img src="{img}&reactor=0&width=400&height=800" class="pure-img" style="width: 33.33%;" />
-                    <img src="{img}&reactor=1&width=400&height=800" class="pure-img" style="width: 33.33%;" />
-                    <img src="{img}&reactor=2&width=400&height=800" class="pure-img" style="width: 33.33%;" />
+                    <img src="{img}&reactor=0&width=400&height=600" class="pure-img" style="width: 33.33%;" />
+                    <img src="{img}&reactor=1&width=400&height=600" class="pure-img" style="width: 33.33%;" />
+                    <img src="{img}&reactor=2&width=400&height=600" class="pure-img" style="width: 33.33%;" />
                 </div>
             </div>
             <div class="pure-u-1" style="display: flex; justify-content: center; align-items: center;">
@@ -45,7 +45,7 @@ INDEX_PAGE = dedent('''\
             </div>
             <div class="pure-u-1" style="display: flex; justify-content: center; align-items: center;">
                 <hr>
-                <span style="font-family: Helvetica; color: #bbb;">{today} -- Remaining disk space: {df} MB</span></p>
+                <span style="font-family: Helvetica; color: #bbb;">Last reload: {today} -- Remaining disk space: {df} MB</span></p>
             </div>
         </div>
     </body>''')

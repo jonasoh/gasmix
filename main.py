@@ -1,6 +1,5 @@
 import time
 import argparse
-from statistics import mean
 from collections import deque
 
 import numpy as np
@@ -11,10 +10,12 @@ from gas_switch import activate_rocker, cleanup
 from sensors import BlueVary, BlueVCount
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--verbose', action='store_true', help='Enable verbose mode')
+parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose mode')
+parser.add_argument('-c', '--cycle-length', type=int, default=60, help='Set CO2/H" measuring cycle length (default: 60)')
 args = parser.parse_args()
 
 VERBOSE = args.verbose
+CYCLE_LENGTH = args.cycle_length
 
 def get_vols(counters):
     return [counter.get_vol() for counter in counters]
@@ -44,14 +45,14 @@ try:
     print('Gas logger and controller starting up.')
     while True:
         # outer loop: this is for measuring H2/CO2.
-        # we need to use a relatively long time for this measurement
-        r = reactors[0] # current reactor
+        # we need to use a relatively long time for this measurement (settable via --cycle-length)
+        r = reactors[0] # reactor currently being sampled
         reactors.rotate(-1)
         activate_rocker(r)
         outerloopstart = time.monotonic()
 
-        # inner loop: this is for measuring flows and data is collected every minute
-        while time.monotonic() - outerloopstart < 60 * 60:
+        while time.monotonic() - outerloopstart < CYCLE_LENGTH * 60:
+            # inner loop: this is for measuring flows. data is collected roughly every minute.
             loopstart = time.monotonic()
             init_vols = get_vols(bcs)
 

@@ -29,9 +29,7 @@ rrd.create_rrds(rrd.missing_files())
 
 # set up db
 db.init()
-try:
-    dbver = db.queries.get_db_version()
-except:
+if not os.path.exists(db.DB_FILE):
     db.rebuild_db()
 
 # connect to sensors
@@ -87,6 +85,7 @@ try:
 
             for cur_r in [0,1,2]:
                 db.queries.insert_sensordata(
+                    id=None,
                     read_time=int(time.time()),
                     reactor=cur_r,
                     vol=flows[cur_r],

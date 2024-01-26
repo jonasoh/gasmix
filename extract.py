@@ -45,7 +45,7 @@ INDEX_PAGE = dedent('''\
             </div>
             <div class="pure-u-1" style="display: flex; justify-content: center; align-items: center;">
                 <hr>
-                <p><span style="font-family: Helvetica; color: #aaa;">Remaining disk space: {df} MB</span></p>
+                <span style="font-family: Helvetica; color: #bbb;">{today} -- Remaining disk space: {df} MB</span></p>
             </div>
         </div>
     </body>''')
@@ -109,10 +109,14 @@ class IndexPageResource:
     def on_get(self, req, resp):
         hours = req.get_param_as_int('hours', default=None)
         if hours is None or hours < 0:
-            page_content = INDEX_PAGE.format(img="/extract/rrdgraph?hours=4", df=int(shutil.disk_usage(os.path.expanduser('~')).free / 1024**2))
+            page_content = INDEX_PAGE.format(img="/extract/rrdgraph?hours=4", 
+                                             df=int(shutil.disk_usage(os.path.expanduser('~')).free / 1024**2),
+                                             today=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         else:
             # If the parameter is not supplied, display a default message
-            page_content = INDEX_PAGE.format(img='/extract/rrdgraph?hours=' + str(hours), df=int(shutil.disk_usage(os.path.expanduser('~')).free / 1024**2))
+            page_content = INDEX_PAGE.format(img='/extract/rrdgraph?hours=' + str(hours), 
+                                             df=int(shutil.disk_usage(os.path.expanduser('~')).free / 1024**2),
+                                             today=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
         resp.content_type = 'text/html'
         resp.status = falcon.HTTP_200

@@ -37,8 +37,8 @@ def create_rrds(files):
         rrdtool.create(file,
                         '--step', '60',
                         'DS:flow:GAUGE:180:0:5000',
-                        'DS:h2:GAUGE:180:0:100', 
-                        'DS:co2:GAUGE:600:0:100', 
+                        'DS:h2:GAUGE:180:-100:200', 
+                        'DS:co2:GAUGE:600:-100:200', 
                         'RRA:LAST:0:1:10080',
                         'RRA:AVERAGE:0.5:6:1680')
 

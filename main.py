@@ -10,19 +10,33 @@ import rrd
 from gas_switch import activate_rocker, cleanup
 from sensors import BlueVary, BlueVCount
 
-print('Gas logger and controller starting up.')
+print("Gas logger and controller starting up.")
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-v', '--verbose', action='store_true', help='Enable verbose mode')
-parser.add_argument('-c', '--cycle-length', type=int, default=60, help='Set CO2/H" measuring cycle length (default: 60)')
-parser.add_argument('-d', '--device', type=str, default=None, help='Device entry for the USB to RS485 adapter (default: first /dev/ttyUSB* entry)')
+parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose mode")
+parser.add_argument(
+    "-c",
+    "--cycle-length",
+    type=int,
+    default=60,
+    help='Set CO2/H" measuring cycle length (default: 60)',
+)
+parser.add_argument(
+    "-d",
+    "--device",
+    type=str,
+    default=None,
+    help="Device entry for the USB to RS485 adapter (default: first /dev/ttyUSB* entry)",
+)
 args = parser.parse_args()
 
 VERBOSE = args.verbose
 CYCLE_LENGTH = args.cycle_length
 
+
 def get_vols(counters):
     return [counter.get_vol() for counter in counters]
+
 
 # set up the rrd
 rrd.create_rrds(rrd.missing_files())
@@ -35,10 +49,10 @@ if not os.path.exists(db.DB_FILE):
 # connect to sensors
 if not args.device:
     devs = []
-    with os.scandir('/dev') as d:
+    with os.scandir("/dev") as d:
         for entry in d:
-            if entry.name.startswith('ttyUSB'):
-                devs.append('/dev/' + entry.name)
+            if entry.name.startswith("ttyUSB"):
+                devs.append("/dev/" + entry.name)
     if devs:
         USB_DEV = sorted(devs)[0]
     else:
@@ -46,13 +60,13 @@ if not args.device:
 else:
     USB_DEV = args.device
 
-assert os.access(USB_DEV, mode=os.R_OK|os.W_OK), f"USB device ({USB_DEV}) not accessible."
-print(f'Using {USB_DEV} for serial communication.')
+assert os.access(
+    USB_DEV, mode=os.R_OK | os.W_OK
+), f"USB device ({USB_DEV}) not accessible."
+print(f"Using {USB_DEV} for serial communication.")
 
-bv = BlueVary('192.168.10.230')
-bcs = [BlueVCount('/dev/ttyUSB0', 1), 
-       BlueVCount('/dev/ttyUSB0', 2), 
-       BlueVCount('/dev/ttyUSB0', 3)]
+bv = BlueVary("192.168.10.230")
+bcs = [BlueVCount(USB_DEV, 1), BlueVCount(USB_DEV, 2), BlueVCount(USB_DEV, 3)]
 bcs[0].serial.baudrate = 38400
 bcs[0].serial.stopbits = 2
 
@@ -63,7 +77,7 @@ try:
     while True:
         # outer loop: this is for measuring H2/CO2.
         # we need to use a relatively long time for this measurement (settable via --cycle-length)
-        r = reactors[0] # reactor currently being sampled
+        r = reactors[0]  # reactor currently being sampled
         reactors.rotate(-1)
         activate_rocker(r)
         outerloopstart = time.monotonic()
@@ -77,13 +91,21 @@ try:
                 time.sleep(0.01)
             end_vols = get_vols(bcs)
 
-            rrd.record_data(flows=(flows := [(x - y) / ((time.monotonic() - loopstart) / 60) for x, y in zip(end_vols, init_vols)]), 
-                            reactor=r, h2=(h2 := bv.get_h2()), 
-                            co2=(co2 := bv.get_co2()))
-            if (VERBOSE):
+            rrd.record_data(
+                flows=(
+                    flows := [
+                        (x - y) / ((time.monotonic() - loopstart) / 60)
+                        for x, y in zip(end_vols, init_vols)
+                    ]
+                ),
+                reactor=r,
+                h2=(h2 := bv.get_h2()),
+                co2=(co2 := bv.get_co2()),
+            )
+            if VERBOSE:
                 print(f"{flows=} {h2=} {co2=}")
 
-            for cur_r in [0,1,2]:
+            for cur_r in [0, 1, 2]:
                 db.queries.insert_sensordata(
                     id=None,
                     read_time=int(time.time()),
@@ -94,7 +116,8 @@ try:
                     temp=bcs[cur_r].get_temp(),
                     pressure=bcs[cur_r].get_pressure(),
                     humidity=bv.get_humidity() if cur_r == r else np.nan,
-                    comment='')
+                    comment="",
+                )
 
 finally:
-    cleanup() # clean up GPIO
+    cleanup()  # clean up GPIO

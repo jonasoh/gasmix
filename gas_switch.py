@@ -9,10 +9,11 @@ rockers = [17, 18, 27]
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(rockers, GPIO.OUT, initial=GPIO.LOW)
 
+
 def activate_rocker(num):
-    '''Activates the indicated rocker and deactivates the others.'''
+    """Activates the indicated rocker and deactivates the others."""
     if not num in range(len(rockers)):
-        print('Invalid rocker number', num, file=sys.stderr)
+        print("Invalid rocker number", num, file=sys.stderr)
         return
 
     output = [GPIO.LOW] * 3

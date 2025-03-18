@@ -6,6 +6,7 @@ import shutil
 from textwrap import dedent
 from datetime import datetime
 
+import cv2
 import falcon
 import rrdtool
 import pandas as pd
@@ -27,11 +28,15 @@ INDEX_PAGE = dedent('''\
         <div class="pure-g">
             <div class="pure-u-1">
                 <div style="display: flex;">
-                    <img src="{img}&reactor=0&width=400&height=600" class="pure-img" style="width: 33.33%;" />
-                    <img src="{img}&reactor=1&width=400&height=600" class="pure-img" style="width: 33.33%;" />
-                    <img src="{img}&reactor=2&width=400&height=600" class="pure-img" style="width: 33.33%;" />
+                    <img src="{img}&reactor=0&width=400&height=600" class="pure-img" style="width: 56.25%; max-height: 95vh; object-fit: contain;" />
+                    <!-- <img src="{img}&reactor=1&width=400&height=600" class="pure-img" style="width: 33.33%;" />
+                    <img src="{img}&reactor=2&width=400&height=600" class="pure-img" style="width: 33.33%;" /> -->
+                    <img src="/webcam.jpg" class="pure-img" style="width: 43.75%; max-height: 95vh; object-fit: contain;" />
                 </div>
             </div>
+            <!-- <div class="pure-u-1" style="display: flex; justify-content: center; align-items: center;">
+                <img src="/webcam.jpg" class="pure-img" />
+            </div> -->
             <div class="pure-u-1" style="display: flex; justify-content: center; align-items: center;">
                 <p>
                     <a href="/?hours=4" class="pure-button">4 h</a>
@@ -172,12 +177,29 @@ class RRDGraphResource:
         resp.content_type = 'image/png'
         resp.data = graph_binary['image']
 
+class ImageResource:
+    def on_get(self, req, resp):
+        ret, frame = cap.read()
+        #cap.release()
+        
+        # rotate the image before returning it
+        rot_frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
+        _, img_encoded = cv2.imencode('.jpg', rot_frame)
+        resp.content_type = 'image/jpeg'
+        resp.body = img_encoded.tobytes()
+
 # create a falcon api instance
 app = falcon.App()
 app.add_route('/', IndexPageResource())
 app.add_route('/extract', DataResource())                       # url for the tsv extractor
 app.add_route('/extract/extract_tsv', ExtractDataResource())    # url for the cgi endpoint (sqlite->tsv)
 app.add_route('/extract/rrdgraph', RRDGraphResource())          # url for the dynamically generated graph
+app.add_route('/webcam.jpg', ImageResource())
+
+# capture device for webcam
+cap = cv2.VideoCapture(0)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
 # allow running from command line
 if __name__ == '__main__':

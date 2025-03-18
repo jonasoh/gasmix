@@ -7,23 +7,23 @@ class FakeBlueVCount:
     timer = None
     flowrate = 10
     current_flowrate = 10
-    flowvar = 0.5 # standard deviation on flow rate
+    flowvar = 0.5  # standard deviation on flow rate
     delay = None
     quitting = False
     timer = None
 
     def __init__(self, flowrate=10, flowvar=0.5):
-        self.delay = 60/(flowrate/0.6)
+        self.delay = 60 / (flowrate / 0.6)
         self.flowvar = flowvar
         self.flowrate = self.current_flowrate = flowrate
         self.set_new_timer()
-    
+
     def get_temp(self):
         return round(20.5 + random.random(), 1)
 
     def get_pressure(self):
         return round(1.013 + random.uniform(-0.06, 0.06), 3)
-    
+
     def get_vol(self):
         return round(self._vol, 1)
 
@@ -31,7 +31,9 @@ class FakeBlueVCount:
         if self.timer is not None:
             self.timer.cancel()
         if not self.quitting:
-            self.timer = threading.Timer(60/(self.current_flowrate/0.6), self.add_vol)
+            self.timer = threading.Timer(
+                60 / (self.current_flowrate / 0.6), self.add_vol
+            )
             self.timer.start()
 
     def add_vol(self):
@@ -46,7 +48,7 @@ class FakeBlueVary:
 
     def __init__(self, h2=70):
         self.h2 = h2
-    
+
     def get_h2(self):
         return random.gauss(self.h2, 3)
 

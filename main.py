@@ -49,10 +49,8 @@ else:
 assert os.access(USB_DEV, mode=os.R_OK|os.W_OK), f"USB device ({USB_DEV}) not accessible."
 print(f'Using {USB_DEV} for serial communication.')
 
-bv = BlueVary('192.168.10.230')
-bcs = [BlueVCount('/dev/ttyUSB0', 1), 
-       BlueVCount('/dev/ttyUSB0', 2), 
-       BlueVCount('/dev/ttyUSB0', 3)]
+bv = BlueVary("192.168.10.230")
+bcs = [BlueVCount(USB_DEV, 1), BlueVCount(USB_DEV, 2), BlueVCount(USB_DEV, 3)]
 bcs[0].serial.baudrate = 38400
 bcs[0].serial.stopbits = 2
 

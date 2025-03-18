@@ -12,18 +12,23 @@ def missing_files():
 # helper functions for generating the rrdtool command
 def plot_flow(num, color): 
     return f"DEF:flow={RRD_FILES[num]}:flow:AVERAGE", \
-            f"LINE2:flow#{color}:Flow (ml/min)\\n", \
-            f"GPRINT:flow:MIN:Min\\: %2.1lf ml/min", \
-            f"GPRINT:flow:MAX:Max\\: %2.1lf ml/min", \
+            f"LINE2:flow#{color}:Flow (ml/min)", \
+            f"GPRINT:flow:LAST:Last\\: %2.1lf ml/min", \
             f"GPRINT:flow:AVERAGE:Avg.\\: %2.1lf ml/min\\n"
 
 def plot_h2(num, color):
     return f"DEF:h2={RRD_FILES[num]}:h2:AVERAGE", \
-            f"LINE2:h2#{color}:H2 (%)"
+            f"LINE2:h2#{color}:H2 (%) ", \
+            f"GPRINT:h2:LAST:      Last\\: %2.1lf%%", \
+            f"GPRINT:h2:AVERAGE:Avg.\\: %2.1lf%%\\n"
+
 
 def plot_co2(num, color):
     return f"DEF:co2={RRD_FILES[num]}:co2:AVERAGE", \
-            f"LINE2:co2#{color}:CO2 (%)"
+            f"LINE2:co2#{color}:CO2 (%)", \
+            f"GPRINT:co2:LAST:      Last\\: %2.1lf%%", \
+            f"GPRINT:co2:AVERAGE:Avg.\\: %2.1lf%%\\n"
+
 
 def create_rrds(files):
     '''Create round robin databases with the following fields:

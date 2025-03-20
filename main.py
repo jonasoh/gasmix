@@ -28,10 +28,19 @@ parser.add_argument(
     default=None,
     help="Device entry for the USB to RS485 adapter (default: first /dev/ttyUSB* entry)",
 )
+parser.add_argument(
+    "-n",
+    "--num-reactors",
+    type=int,
+    default=3,
+    choices=range(1, 4),  # Allows values 1, 2, or 3
+    help="Number of reactors to track (default: 3, min: 1, max: 3)",
+)
 args = parser.parse_args()
 
 VERBOSE = args.verbose
 CYCLE_LENGTH = args.cycle_length
+NUM_REACTORS = args.num_reactors
 
 
 def get_vols(counters):
@@ -71,7 +80,7 @@ bcs[0].serial.baudrate = 38400
 bcs[0].serial.stopbits = 2
 
 # use this to keep track of which reactor is being measured
-reactors = deque([0, 1, 2])
+reactors = deque(range(NUM_REACTORS))
 
 try:
     while True:
@@ -105,7 +114,7 @@ try:
             if VERBOSE:
                 print(f"{flows=} {h2=} {co2=}")
 
-            for cur_r in [0, 1, 2]:
+            for cur_r in range(NUM_REACTORS):
                 db.queries.insert_sensordata(
                     id=None,
                     read_time=int(time.time()),
